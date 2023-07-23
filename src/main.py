@@ -1,9 +1,11 @@
 """Module providing main Carpool-Creator functionality."""
 
+# pylint: disable=C0413, E0401
 import sys
 import argparse
 import random
 import pandas as pd
+# pylint: enable=C0413, E0401
 
 def function_with_logging(func):
     """A function which provides basic start, end, and error logs useful for debugging."""
@@ -29,10 +31,18 @@ def main():
 
 @function_with_logging
 def parse_arguments(args):
-    """A function which parses a list of argument strings for the ones necessary for Carpool-Creator"""
-    parser = argparse.ArgumentParser(prog='CarpoolCreator', description='parse file name and script flags')
-    parser.add_argument('src_file', nargs=1, help="CSV source file path for the carpool data")
-    parser.add_argument('out_file', nargs=1, help="CSV output file path to store the carpool matchmaking")
+    """Function providing argument string parsing for Carpool-Creator"""
+    parser = argparse.ArgumentParser(
+        prog='CarpoolCreator',
+        description='parse file name and script flags')
+    parser.add_argument(
+        'src_file',
+        nargs=1,
+        help="CSV source file for the carpool data")
+    parser.add_argument(
+        'out_file',
+        nargs=1,
+        help="CSV output file to store the carpool matchmaking")
     args = parser.parse_args(args)
     return args
 
@@ -51,7 +61,7 @@ def read_carpool_data(csv_file):
 def match_riders_randomly(driver_data, riders):
     """A function which randomly matches drivers and riders"""
     maximum_riders_allowed: int = (int)(driver_data['Capacity'].sum(numeric_only=True))
-    if (maximum_riders_allowed < len(riders)):
+    if maximum_riders_allowed < len(riders):
         print("CANNOT MATCH ALL RIDERS TO A DRIVER")
         exit(-1)
 
