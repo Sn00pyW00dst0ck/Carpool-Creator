@@ -21,9 +21,9 @@ def function_with_logging(func):
         return result
     return decorated_func
 
-def main():
+def main(argv=None):
     """Function providing main Carpool-Creator functionality"""
-    args = parse_arguments(sys.argv[1:])
+    args = parse_arguments(argv)
     _, driver_data, riders = read_carpool_data(args.src_file[0])
     matches = match_riders_randomly(driver_data, riders)
     matches.to_csv(args.out_file[0])
@@ -86,4 +86,4 @@ def match_riders_randomly(driver_data, riders):
     return pd.DataFrame(matches)
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])
