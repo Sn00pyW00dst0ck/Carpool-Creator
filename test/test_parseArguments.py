@@ -18,7 +18,7 @@ class ParseArgumentsUnitTests(unittest.TestCase):
 
     def basic_test(self):
         """A basic test of the function"""
-        parse_arguments()
+        parse_arguments([])
 
 if __name__ == '__main__':
     unittest.main()
