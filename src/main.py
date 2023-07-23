@@ -67,7 +67,7 @@ def match_riders_randomly(driver_data, riders):
 
     # Initialize variables for
     riders_to_match = riders
-    matches =  dict.fromkeys(driver_data['Driver'].tolist())
+    matches = dict.fromkeys(driver_data['Driver'].tolist())
     for i in driver_data.index:
         matches[driver_data['Driver'][i]] = []
 

@@ -10,7 +10,6 @@ import os.path
 src_dir = (os.path.abspath(os.path.join(os.path.dirname(__file__), '..')) + '/src/')
 sys.path.append(src_dir)
 from main import parse_arguments
-
 # pylint: enable=C0413, E0401
 
 class ParseArgumentsUnitTests(unittest.TestCase):
