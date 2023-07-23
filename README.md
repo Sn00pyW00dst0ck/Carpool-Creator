@@ -10,6 +10,8 @@ _Note: In this readme all python commands use python3 as this project was develo
 ## To Use
 Create a csv file with columns named 'Driver', 'Capacity' and 'Rider'. Fill the spreadsheet with the names of the drivers, how many riders they can carry, and the name of every rider. 
 
+Run `pip install -r requirements.txt` to install program dependencies.
+
 Then, run the command `python3 src/main.py <input_csv_file_path> <output_csv_file_path>` from within the root directory of the project. 
 
 The script will pair up riders and then write the result to the specified output csv file. The output csv file will have driver's names as columns and the entries below will be the people riding with that driver. 
