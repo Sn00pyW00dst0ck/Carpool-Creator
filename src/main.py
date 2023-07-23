@@ -67,6 +67,7 @@ def match_riders_randomly(driver_data, riders):
 
     # Initialize variables for
     riders_to_match = riders
+    random.shuffle(riders_to_match)
     matches = dict.fromkeys(driver_data['Driver'].tolist())
     for i in driver_data.index:
         matches[driver_data['Driver'][i]] = []
@@ -76,11 +77,11 @@ def match_riders_randomly(driver_data, riders):
         for i in driver_data.index:
             try:
                 if len(matches[driver_data['Driver'][i]]) < driver_data['Capacity'][i]:
-                    rider_to_add = riders_to_match.pop(random.randint(0, len(riders_to_match)-1))
+                    rider_to_add = riders_to_match.pop()
                     matches[driver_data['Driver'][i]].append(rider_to_add)
                 else:
                     matches[driver_data['Driver'][i]].append('')
-            except RuntimeError:
+            except IndexError:
                 matches[driver_data['Driver'][i]].append('')
 
     return pd.DataFrame(matches)
