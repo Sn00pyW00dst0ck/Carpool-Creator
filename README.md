@@ -2,6 +2,9 @@
 
 A basic python application created to solve the issue of assinging drivers and riders when organizing carpooling large groups. 
 
+![Pylint Status](https://github.com/github/docs/actions/workflows/pylint.yml/badge.svg?event=push)
+![Test Status](https://github.com/github/docs/actions/workflows/unittest.yml/badge.svg?event=push)
+
 _Note: In this readme all python commands use python3 as this project was developed in a Linux environment. This project should execute in other operating systems provided the proper keyword for running python is used._
 
 ## To Use
