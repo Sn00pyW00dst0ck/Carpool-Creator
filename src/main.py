@@ -63,13 +63,13 @@ def match_riders_randomly(driver_data, riders):
     maximum_riders_allowed: int = (int)(driver_data['Capacity'].sum(numeric_only=True))
     if maximum_riders_allowed < len(riders):
         print("CANNOT MATCH ALL RIDERS TO A DRIVER")
-        exit(-1)
+        sys.exit(-1)
 
     # Initialize variables for
     riders_to_match = riders
     matches =  dict.fromkeys(driver_data['Driver'].tolist())
     for i in driver_data.index:
-        matches[driver_data['Driver'][i]] = list()
+        matches[driver_data['Driver'][i]] = []
 
     # While there are riders, give each driver a random rider
     while riders_to_match:
