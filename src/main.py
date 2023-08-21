@@ -4,6 +4,9 @@
 import sys
 import argparse
 import pandas as pd
+from scipy.spatial import distance_matrix
+from geopy.geocoders import Nominatim
+from geopy.extra.rate_limiter import RateLimiter
 # pylint: enable=C0413, E0401
 
 def function_with_logging(func):
@@ -24,7 +27,8 @@ def main(argv=None):
     """Function providing main Carpool-Creator functionality"""
     args = parse_arguments(argv)
     _, driver_data, rider_data = read_carpool_data(args.src_file[0])
-    matches = match_riders_randomly(driver_data, rider_data)
+    # matches = match_riders_randomly(driver_data, rider_data)
+    matches = match_riders_from_addresses(driver_data, rider_data)
     matches.to_csv(args.out_file[0])
     return 0
 
@@ -63,7 +67,7 @@ def match_riders_randomly(driver_data: pd.DataFrame, rider_data: pd.DataFrame):
         print("CANNOT MATCH ALL RIDERS TO A DRIVER")
         sys.exit(-1)
 
-    # Initialize variables for
+    # Initialize variables for matching
     riders_to_match = rider_data.sample(frac = 1).set_index('Rider')
     matches = dict.fromkeys(driver_data['Driver'].tolist())
     for i in driver_data.index:
@@ -86,18 +90,38 @@ def match_riders_randomly(driver_data: pd.DataFrame, rider_data: pd.DataFrame):
     return pd.DataFrame(matches)
 
 @function_with_logging
-def match_riders_with_google(driver_data, riders):
-    """A function which attempts to match drivers to riders using the google maps API"""
+def match_riders_from_addresses(driver_data, rider_data):
+    """A function which randomly matches drivers and riders"""
+    maximum_riders_allowed: int = (int)(driver_data['Capacity'].sum(numeric_only=True))
+    if maximum_riders_allowed < len(rider_data['Rider'].tolist()):
+        print("CANNOT MATCH ALL RIDERS TO A DRIVER")
+        sys.exit(-1)
 
-    # Initialize the matches output
+    geolocator = Nominatim(user_agent="my_request")
+    geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
+
+    # Apply geocode to all addresses in the rider_data
+    rider_data['Location'] = rider_data['Rider Address'].apply(geocode)
+    rider_data['Lat'] = rider_data['Location'].apply(lambda x: x.latitude if x else None)
+    rider_data['Lon'] = rider_data['Location'].apply(lambda x: x.longitude if x else None)
+    # print(rider_data)
+    print()
+
+    # calculate distances between lat, lons to determine optimal pairings
+    # Need upper half of a triangular table to find distance from rider A to rider B
+    # print(distance.distance(tuple(lat, lon), tuple(lat, lon)).miles)
+    locations = pd.DataFrame(rider_data[['Lat', 'Lon']].values.tolist(), columns=['Lat', 'Lon'], index=rider_data['Rider Address'])
+    distances = pd.DataFrame(distance_matrix(locations.values, locations.values), index=locations.index, columns=locations.index)
+    print(distances)
+    print()
+
+
+    #initialize the matches output
     matches = dict.fromkeys(driver_data['Driver'].tolist())
     for i in driver_data.index:
         matches[driver_data['Driver'][i]] = []
 
-    
-
     return pd.DataFrame(matches)
-
 
 
 
