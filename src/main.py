@@ -33,7 +33,7 @@ def main(argv=None):
     """Function providing main Carpool-Creator functionality"""
     args = parse_arguments(argv)
     _, driver_data, rider_data = read_carpool_data(args.src_file[0])
-    try: 
+    try:
         matches = match_riders_from_addresses(driver_data, rider_data)
     except: # pylint: disable=bare-except
         matches=match_riders_randomly(driver_data, rider_data)
