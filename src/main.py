@@ -4,6 +4,7 @@
 import sys
 import argparse
 import pandas as pd
+import numpy as np
 from scipy.spatial import distance_matrix
 from geopy.geocoders import Nominatim
 from geopy.extra.rate_limiter import RateLimiter
@@ -79,7 +80,7 @@ def match_riders_randomly(driver_data: pd.DataFrame, rider_data: pd.DataFrame):
             try:
                 if len(matches[driver_data['Driver'][i]]) < driver_data['Capacity'][i]:
                     rider_to_add = riders_to_match.head(1)
-                    pretty_output = "Rider: " + rider_to_add.index[0] + " - Address: " + rider_to_add['Rider Address'][0]
+                    pretty_output =  rider_to_add.index[0] + " - " + rider_to_add['Rider Address'][0]
                     matches[driver_data['Driver'][i]].append(pretty_output)
                     riders_to_match = riders_to_match.tail(-1)
                 else:
@@ -100,30 +101,58 @@ def match_riders_from_addresses(driver_data, rider_data):
     geolocator = Nominatim(user_agent="my_request")
     geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
 
-    # Apply geocode to all addresses in the rider_data
+    # TODO: Streamline below code
+    # TODO: Make below more error proof (ex missing address causes errors, etc)
+
+    # Apply geocode to get lat lon from address
     rider_data['Location'] = rider_data['Rider Address'].apply(geocode)
     rider_data['Lat'] = rider_data['Location'].apply(lambda x: x.latitude if x else None)
     rider_data['Lon'] = rider_data['Location'].apply(lambda x: x.longitude if x else None)
-    # print(rider_data)
-    print()
 
-    # calculate distances between lat, lons to determine optimal pairings
-    # Need upper half of a triangular table to find distance from rider A to rider B
-    # print(distance.distance(tuple(lat, lon), tuple(lat, lon)).miles)
-    locations = pd.DataFrame(rider_data[['Lat', 'Lon']].values.tolist(), columns=['Lat', 'Lon'], index=rider_data['Rider Address'])
+    # Find Distance Matrix
+    locations = pd.DataFrame(rider_data[['Lat', 'Lon']].values.tolist(), columns=['Lat', 'Lon'], index=rider_data['Rider'] + " - " + rider_data['Rider Address'])
     distances = pd.DataFrame(distance_matrix(locations.values, locations.values), index=locations.index, columns=locations.index)
-    print(distances)
-    print()
 
+    drivers_max_capacity = driver_data['Capacity'].max()
 
-    #initialize the matches output
+    # Create Matches
+    drivers_max_capacity = driver_data['Capacity'].max()
     matches = dict.fromkeys(driver_data['Driver'].tolist())
     for i in driver_data.index:
         matches[driver_data['Driver'][i]] = []
+        try:
+            distances, closest_locations = find_closest_x_locations(distances, driver_data['Capacity'][i])
+            matches[driver_data['Driver'][i]] = closest_locations
+        except:
+            pass
+        # Add blanks to allow making the DataFrame for output
+        while(len(matches[driver_data['Driver'][i]]) < drivers_max_capacity):
+            matches[driver_data['Driver'][i]].append('')
 
     return pd.DataFrame(matches)
 
 
+def find_closest_x_locations(distance_matrix, x):
+    """Helper function that finds the X closest locations in the distance matrix"""
+    closest_locations = set()  # Use a set to ensure uniqueness of locations
+
+    while len(closest_locations) < x:
+        min_distance = distance_matrix.values.min()
+        min_i, min_j = np.where(distance_matrix.values == min_distance)
+        min_i, min_j = min_i[0], min_j[0]
+
+        closest_locations.add(distance_matrix.index[min_i])
+
+        # Exclude the rows and columns for min_i and min_j to find the next closest pair
+        distance_matrix = reduce_matrix(distance_matrix, min_i)
+
+    return distance_matrix, list(closest_locations)
+
+def reduce_matrix(matrix, i):
+    """Helper function to reduce the distance matrix"""
+    # Remove row i and column i
+    matrix = matrix.drop([matrix.index[i]]).drop(columns=[matrix.columns[i]])
+    return matrix
 
 if __name__ == '__main__':
     main(sys.argv[1:])
