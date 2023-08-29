@@ -114,26 +114,29 @@ def match_riders_from_addresses(driver_data, rider_data):
 
     # Make below more error proof (ex missing address causes errors, etc)
 
-    # Apply geocode to get lat lon from address
+    # Use geocode to get lat lon from addresses and construct a distance matrix from that
     rider_data["Location"] = rider_data["Rider Address"].apply(geocode)
-    rider_data["Lat"] = rider_data["Location"].apply(
-        lambda x: x.latitude if x else None
-    )
-    rider_data["Lon"] = rider_data["Location"].apply(
-        lambda x: x.longitude if x else None
-    )
-
-    # Find Distance Matrix
+    rider_data["Rider Address"].replace(np.nan, "No Address Provided", inplace=True)
     locations = pd.DataFrame(
-        rider_data[["Lat", "Lon"]].values.tolist(),
+        # Read lat lon from locations we geocoded into a locations matrix
+        rider_data["Location"].apply(
+            lambda x: [
+                x.latitude if hasattr(x,'latitude') and (x.latitude is not None) else None,
+                x.longitude if hasattr(x,'longitude') and (x.longitude is not None) else None
+            ]
+        ).values.tolist(),
         columns=["Lat", "Lon"],
-        index=rider_data["Rider"] + " - " + rider_data["Rider Address"],
+        index=rider_data["Rider"] + " - " + rider_data["Rider Address"]
     )
     distances = pd.DataFrame(
         distance_matrix(locations.values, locations.values),
         index=locations.index,
         columns=locations.index,
     )
+    print(rider_data)
+    print(locations)
+    print(distances)
+    print("Kate" + " - " + rider_data["Rider Address"][3])
 
     drivers_max_capacity = driver_data["Capacity"].max()
 
