@@ -7,10 +7,16 @@ import pandas as pd
 import numpy as np
 from scipy.spatial import distance_matrix
 from geopy.geocoders import Nominatim
+from geopy.exc import GeocoderQueryError
+from geopy.adapters import AdapterHTTPError
+
 from geopy.extra.rate_limiter import RateLimiter
 
 # pylint: enable=C0413, E0401
 
+# Custom exception for geocoding errors
+class CustomGeocodingError(Exception):
+    """Custom Geocoding Exception Type"""
 
 def function_with_logging(func):
     """A function which provides basic start, end, and error logs useful for debugging."""
@@ -109,13 +115,14 @@ def match_riders_from_addresses(driver_data, rider_data):
         print("CANNOT MATCH ALL RIDERS TO A DRIVER")
         sys.exit(-1)
 
-    geolocator = Nominatim(user_agent="my_request")
-    geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
-
-    # Make below more error proof (ex missing address causes errors, etc)
+    geocode = RateLimiter(custom_geocode, min_delay_seconds=1)
 
     # Use geocode to get lat lon from addresses and construct a distance matrix from that
-    rider_data["Location"] = rider_data["Rider Address"].apply(geocode)
+    try:
+        rider_data["Location"] = rider_data["Rider Address"].apply(geocode)
+    except GeocoderQueryError as err:
+        raise GeocoderQueryError("Could Not Geocode All Addresses.") from err
+
     rider_data["Rider Address"].replace(np.nan, "No Address Provided", inplace=True)
     locations = pd.DataFrame(
         # Read lat lon from locations we geocoded into a locations matrix
@@ -133,14 +140,9 @@ def match_riders_from_addresses(driver_data, rider_data):
         index=locations.index,
         columns=locations.index,
     )
-    print(rider_data)
     print(locations)
-    print(distances)
-    print("Kate" + " - " + rider_data["Rider Address"][3])
 
-    drivers_max_capacity = driver_data["Capacity"].max()
-
-    # Create Matches
+    # Create Matches From Distance Matrix
     drivers_max_capacity = driver_data["Capacity"].max()
     matches = dict.fromkeys(driver_data["Driver"].tolist())
     for i in driver_data.index:
@@ -175,13 +177,26 @@ def find_closest_x_locations(dist_matrix: pd.DataFrame, x: int): # pylint: disab
 
     return dist_matrix, list(closest_locations)
 
-
 def reduce_matrix(matrix, i):
     """Helper function to reduce the distance matrix"""
     # Remove row i and column i
     matrix = matrix.drop([matrix.index[i]]).drop(columns=[matrix.columns[i]])
     return matrix
 
+def custom_geocode(address):
+    """
+    Custom geocode function that will raise a custom error 
+    for proper try catching when addresses are invalid
+    """
+    geolocator = Nominatim(user_agent="my_request")
+    try:
+        # Geocode the address
+        location = geolocator.geocode(address)
+        if location is None:
+            raise CustomGeocodingError("Geocoding failed for address: " + address)
+        return location
+    except Exception as err:
+        raise CustomGeocodingError("Geocoding failed for address: " + address) from err
 
 if __name__ == "__main__":
     main(sys.argv[1:])
