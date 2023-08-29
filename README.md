@@ -8,7 +8,7 @@ A basic python application created to solve the issue of assinging drivers and r
 _Note: In this readme all python commands use python3 as this project was developed in a Linux environment. This project should execute in other operating systems provided the proper keyword for running python is used._
 
 ## To Use
-Create a csv file with columns named 'Driver', 'Capacity' and 'Rider'. Fill the spreadsheet with the names of the drivers, how many riders they can carry, and the name of every rider. 
+Create a csv file with columns named 'Driver', 'Capacity' and 'Rider'. Fill the spreadsheet with the names of the drivers and how many riders they can carry. Also include the name of every rider and their address. 
 
 Run `pip install -r requirements.txt` to install program dependencies.
 

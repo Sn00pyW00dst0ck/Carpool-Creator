@@ -8,8 +8,6 @@ import numpy as np
 from scipy.spatial import distance_matrix
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderQueryError
-from geopy.adapters import AdapterHTTPError
-
 from geopy.extra.rate_limiter import RateLimiter
 
 # pylint: enable=C0413, E0401
