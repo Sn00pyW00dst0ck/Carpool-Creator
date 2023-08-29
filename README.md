@@ -1,6 +1,6 @@
 # Carpool-Creator
 
-A basic python application created to solve the issue of assinging drivers and riders when organizing carpooling large groups. 
+A basic python application created to solve the issue of assinging drivers and riders when organizing carpooling large groups. Riders will attempt to be matched according to geological closeness based on addresses first, before being matched randomly.
 
 ![Pylint Status](https://github.com/Sn00pyW00dst0ck/Carpool-Creator/actions/workflows/pylint.yml/badge.svg?event=push)
 ![Test Status](https://github.com/Sn00pyW00dst0ck/Carpool-Creator/actions/workflows/unittest.yml/badge.svg?event=push)
